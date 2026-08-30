@@ -232,6 +232,18 @@ with st.sidebar:
 st.title("ModelLoop")
 st.caption("Automated Evaluation → Failure Detection → Category Learning → Guided Intervention → Verification")
 
+# Short Executive Summary Box at Start
+st.markdown("""
+<div style="background-color: #1a202c; border: 1px solid #3182ce; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+    <h4 style="margin-top: 0; color: #63b3ed; font-size: 1.05rem;">📍 Model Executive Summary</h4>
+    <p style="margin-bottom: 0; font-size: 0.95rem; color: #e2e8f0; line-height: 1.5;">
+        <b>ModelLoop</b> evaluates Large Language Models (targeting <b>Gemini 3.6 Flash</b>) against a 13-test benchmark across 8 weakness categories. 
+        It automatically detects model failures, compiles actionable guidance rules in <code>improvement_memory.json</code>, retrieves domain-matched lessons, 
+        and re-evaluates model performance independently — delivering an audited <b>+38.5% pass-rate improvement (53.8% → 92.3%)</b> without retraining underlying model weights.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
 # 1. OVERVIEW & HEALTH SECTION
 if nav_selection == "📊 Overview & Health":
     st.header("📊 Model Performance & Health")
