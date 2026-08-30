@@ -1,0 +1,74 @@
+[
+    {
+        "test_id": "TC01",
+        "category": "instruction_following",
+        "severity": "Medium",
+        "original_prompt": "Respond ONLY in valid JSON format with keys \"status\" and \"summary\". Do not include any markdown formatting, preamble, or commentary. Summary: Water boils at 100 degrees Celsius.",
+        "failed_model_response": "```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Water boils at 100 degrees Celsius.\"\n}\n```",
+        "identified_weakness": "instruction_following",
+        "evaluator_explanation": "Failed criteria: Included markdown backticks.",
+        "what_should_have_happened": "Response must parse as valid JSON, contain keys 'status' and 'summary', and contain no markdown code block backticks (```).",
+        "improved_desired_response": "{\n  \"status\": \"success\",\n  \"summary\": \"Water boils at 100 degrees Celsius.\"\n}",
+        "learning_objective": "Improve instruction_following by enforcing strict criteria: Response must parse as valid JSON, contain keys 'status' and 'summary', and contain no markdown code block backticks (```)."
+    },
+    {
+        "test_id": "TC02",
+        "category": "instruction_following",
+        "severity": "Low",
+        "original_prompt": "Explain gravity in EXACTLY 10 words or fewer. Do not exceed 10 words under any circumstances.",
+        "failed_model_response": "Gravity is the invisible force that pulls fundamental matter and objects toward one another.",
+        "identified_weakness": "instruction_following",
+        "evaluator_explanation": "Word count was 14, exceeding limit of 10 words.",
+        "what_should_have_happened": "Response must contain 10 or fewer words.",
+        "improved_desired_response": "Gravity pulls matter together.",
+        "learning_objective": "Improve instruction_following by enforcing strict criteria: Response must contain 10 or fewer words."
+    },
+    {
+        "test_id": "TC03",
+        "category": "contradictory_instructions",
+        "severity": "Medium",
+        "original_prompt": "Write a short sentence about space. Rule 1: Use English. Rule 2: Do not use the letter 'e' anywhere in your response.",
+        "failed_model_response": "Space is a vast vacuum that contains millions of galaxies and stars.",
+        "identified_weakness": "contradictory_instructions",
+        "evaluator_explanation": "Response contained 2 occurrences of letter 'e'.",
+        "what_should_have_happened": "Response must be a valid sentence about space and contain zero occurrences of the letter 'e' (case-insensitive).",
+        "improved_desired_response": "A vast cosmos holds dark stars and moon orbit paths.",
+        "learning_objective": "Improve contradictory_instructions by enforcing strict criteria: Response must be a valid sentence about space and contain zero occurrences of the letter 'e' (case-insensitive)."
+    },
+    {
+        "test_id": "TC11",
+        "category": "instruction_following",
+        "severity": "High",
+        "original_prompt": "Generate a profile for user \"Jane Doe\" aged 30 with city \"New York\". Output MUST be raw valid JSON only. Do not use markdown backticks, fences, or commentary.",
+        "failed_model_response": "```json\n{\n  \"name\": \"Jane Doe\",\n  \"age\": 30,\n  \"city\": \"New York\"\n}\n```",
+        "identified_weakness": "instruction_following",
+        "evaluator_explanation": "Failed criteria: Included markdown backticks.",
+        "what_should_have_happened": "Response must parse as valid JSON containing user information, without markdown code block backticks (```).",
+        "improved_desired_response": "Target ideal response adhering to all negative constraints and logical invariants.",
+        "learning_objective": "Improve instruction_following by enforcing strict criteria: Response must parse as valid JSON containing user information, without markdown code block backticks (```)."
+    },
+    {
+        "test_id": "TC12",
+        "category": "contradictory_instructions",
+        "severity": "Medium",
+        "original_prompt": "Write a short sentence about ocean fish. Rule 1: Use English. Rule 2: Do not use the letter 'a' anywhere in your response.",
+        "failed_model_response": "Many ocean fish swim around coral reefs in calm waters.",
+        "identified_weakness": "contradictory_instructions",
+        "evaluator_explanation": "Response contained 6 occurrences of letter 'a'.",
+        "what_should_have_happened": "Response must be a valid sentence about fish and contain zero occurrences of the letter 'a' (case-insensitive).",
+        "improved_desired_response": "Target ideal response adhering to all negative constraints and logical invariants.",
+        "learning_objective": "Improve contradictory_instructions by enforcing strict criteria: Response must be a valid sentence about fish and contain zero occurrences of the letter 'a' (case-insensitive)."
+    },
+    {
+        "test_id": "TC13",
+        "category": "instruction_following",
+        "severity": "Low",
+        "original_prompt": "Define photosynthesis in EXACTLY 8 words or fewer.",
+        "failed_model_response": "Photosynthesis is the complex biological process by which green plants convert sunlight into chemical energy.",
+        "identified_weakness": "instruction_following",
+        "evaluator_explanation": "Word count was 15, exceeding limit of 8 words.",
+        "what_should_have_happened": "Response must contain 8 or fewer words defining photosynthesis.",
+        "improved_desired_response": "Target ideal response adhering to all negative constraints and logical invariants.",
+        "learning_objective": "Improve instruction_following by enforcing strict criteria: Response must contain 8 or fewer words defining photosynthesis."
+    }
+]

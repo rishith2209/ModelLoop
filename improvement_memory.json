@@ -1,0 +1,62 @@
+[
+    {
+        "source_test_id": "TC01",
+        "weakness_category": "instruction_following",
+        "severity": "Medium",
+        "original_prompt": "Respond ONLY in valid JSON format with keys \"status\" and \"summary\". Do not include any markdown formatting, preamble, or commentary. Summary: Water boils at 100 degrees Celsius.",
+        "failed_response_snippet": "```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Water boils at 100 degrees Celsius.\"\n}\n```",
+        "evaluator_explanation": "Failed criteria: Included markdown backticks.",
+        "learned_lesson": "When raw JSON format is requested, output clean JSON directly without surrounding markdown backtick fences (```json).",
+        "guidance_rule": "CRITICAL GUIDANCE: Output raw JSON string only. Do NOT use markdown code blocks like ```json."
+    },
+    {
+        "source_test_id": "TC02",
+        "weakness_category": "instruction_following",
+        "severity": "Low",
+        "original_prompt": "Explain gravity in EXACTLY 10 words or fewer. Do not exceed 10 words under any circumstances.",
+        "failed_response_snippet": "Gravity is the invisible force that pulls fundamental matter and objects toward one another.",
+        "evaluator_explanation": "Word count was 14, exceeding limit of 10 words.",
+        "learned_lesson": "Strictly enforce upper bound word count limits by keeping response concise.",
+        "guidance_rule": "CRITICAL GUIDANCE: Keep answer extremely brief. Word count must strictly be 10 words or fewer."
+    },
+    {
+        "source_test_id": "TC03",
+        "weakness_category": "contradictory_instructions",
+        "severity": "Medium",
+        "original_prompt": "Write a short sentence about space. Rule 1: Use English. Rule 2: Do not use the letter 'e' anywhere in your response.",
+        "failed_response_snippet": "Space is a vast vacuum that contains millions of galaxies and stars.",
+        "evaluator_explanation": "Response contained 2 occurrences of letter 'e'.",
+        "learned_lesson": "To satisfy negative character constraints (e.g., no 'e'), avoid common forbidden words like 'the', 'earth', 'space'.",
+        "guidance_rule": "CRITICAL GUIDANCE: Avoid any word containing the letter 'e'. Strictly use words like 'vast', 'cosmos', 'dark', 'stars'."
+    },
+    {
+        "source_test_id": "TC11",
+        "weakness_category": "instruction_following",
+        "severity": "High",
+        "original_prompt": "Generate a profile for user \"Jane Doe\" aged 30 with city \"New York\". Output MUST be raw valid JSON only. Do not use markdown backticks, fences, or commentary.",
+        "failed_response_snippet": "```json\n{\n  \"name\": \"Jane Doe\",\n  \"age\": 30,\n  \"city\": \"New York\"\n}\n```",
+        "evaluator_explanation": "Failed criteria: Included markdown backticks.",
+        "learned_lesson": "Enforce criteria for category 'instruction_following': Failed criteria: Included markdown backticks.",
+        "guidance_rule": "GUIDANCE: Strictly adhere to rules for instruction_following."
+    },
+    {
+        "source_test_id": "TC12",
+        "weakness_category": "contradictory_instructions",
+        "severity": "Medium",
+        "original_prompt": "Write a short sentence about ocean fish. Rule 1: Use English. Rule 2: Do not use the letter 'a' anywhere in your response.",
+        "failed_response_snippet": "Many ocean fish swim around coral reefs in calm waters.",
+        "evaluator_explanation": "Response contained 6 occurrences of letter 'a'.",
+        "learned_lesson": "Enforce criteria for category 'contradictory_instructions': Response contained 6 occurrences of letter 'a'.",
+        "guidance_rule": "GUIDANCE: Strictly adhere to rules for contradictory_instructions."
+    },
+    {
+        "source_test_id": "TC13",
+        "weakness_category": "instruction_following",
+        "severity": "Low",
+        "original_prompt": "Define photosynthesis in EXACTLY 8 words or fewer.",
+        "failed_response_snippet": "Photosynthesis is the complex biological process by which green plants convert sunlight into chemical energy.",
+        "evaluator_explanation": "Word count was 15, exceeding limit of 8 words.",
+        "learned_lesson": "Enforce criteria for category 'instruction_following': Word count was 15, exceeding limit of 8 words.",
+        "guidance_rule": "GUIDANCE: Strictly adhere to rules for instruction_following."
+    }
+]
