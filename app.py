@@ -309,21 +309,57 @@ if nav_selection == "📊 Overview & Health":
 
 # 2. EVALUATION LAB
 elif nav_selection == "🔬 Evaluation Lab":
-    st.header("🔬 Evaluation Lab & Control Center")
-    st.markdown("Configure and execute benchmark evaluations against Gemini 3.6 Flash.")
+    st.header("🔬 Evaluation Lab & Model Execution Control Center")
+    st.markdown("Configure model providers, inspect connection status, and execute benchmark evaluations.")
     
-    st.info("💡 **Execution Strategy**: Relevance-Matched Guided Context Intervention with Independent Evaluator Isolation.")
+    st.info("💡 **Model-Agnostic Execution**: ModelLoop routes requests through provider adapters. The evaluator and LearningEngine remain 100% independent.")
+    
+    from model_adapter import PROVIDER_CONFIGS, get_provider_status, test_provider_connection
     
     c1, c2 = st.columns(2)
     with c1:
-        st.selectbox("Target Model", ["Gemini 3.6 Flash (gemini-3.6-flash)"], disabled=True)
-        st.selectbox("Provider", ["Google GenAI API"], disabled=True)
+        st.markdown("#### Provider & Model Selection")
+        selected_provider_id = st.selectbox(
+            "Select Execution Provider",
+            options=list(PROVIDER_CONFIGS.keys()),
+            format_func=lambda x: PROVIDER_CONFIGS[x]["name"]
+        )
+        
+        provider_cfg = PROVIDER_CONFIGS[selected_provider_id]
+        selected_model_name = st.selectbox(
+            "Select Model",
+            options=provider_cfg["models"]
+        )
+        
     with c2:
-        st.selectbox("Test Suite", ["Full Benchmark (13 Cases)"], disabled=True)
-        st.selectbox("Intervention Layer", ["Relevance-Matched Guided Context"], disabled=True)
+        st.markdown("#### Execution Status & Connection Test")
+        status_info = get_provider_status(selected_provider_id)
+        if status_info["configured"]:
+            st.success(f"● Configured ({status_info['key_name']} active in environment)")
+        else:
+            st.error(f"○ Not Configured ({status_info['key_name']} missing in environment)")
+            st.caption(status_info.get("reason", ""))
+            
+        if st.button("🔌 Test Provider Connection", type="secondary"):
+            with st.spinner("Testing API endpoint..."):
+                conn_res = test_provider_connection(selected_provider_id, model_name=selected_model_name)
+                if conn_res["status"] == "live":
+                    st.success(f"LIVE: {conn_res['message']}")
+                elif conn_res["status"] == "fallback":
+                    st.warning(f"FALLBACK/RATE-LIMITED: {conn_res['message']}")
+                else:
+                    st.error(f"FAILED/NOT CONFIGURED: {conn_res['message']}")
         
     st.divider()
-    st.write("Ready to run execution loop.")
+    st.markdown("#### Execute Pipeline with Selected Configuration")
+    if st.button(f"🚀 Execute Benchmark with {provider_cfg['name']}", type="primary"):
+        with st.spinner(f"Running Benchmark via {provider_cfg['name']} ({selected_model_name})..."):
+            try:
+                pipeline.main(provider_id=selected_provider_id, model_name=selected_model_name)
+                st.success("Benchmark completed successfully!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Execution Error: {str(e)}")
 
 # 3. DETAILED TEST RESULTS
 elif nav_selection == "📋 Detailed Test Results":
@@ -429,9 +465,15 @@ elif nav_selection == "🔍 Audit & Experiment View":
     st.subheader("🔬 Implementation Evidence")
     st.caption("Read-only excerpts dynamically loaded from the actual ModelLoop source code on disk.")
     
-    # 01. Model Configuration
-    with st.expander("01 · Target Model Configuration (main.py)"):
-        st.markdown("**SOURCE**: `main.py` | **PURPOSE**: Model identity and Google GenAI SDK setup")
+    # 01. Model Adapter Architecture
+    with st.expander("01 · Model Adapter Architecture (model_adapter.py)"):
+        st.markdown("**SOURCE**: `model_adapter.py` | **PURPOSE**: Provider-agnostic LLM normalization layer (Google, Anthropic, OpenCode Zen, OpenAI-Compatible)")
+        adapter_code = read_source_excerpt("model_adapter.py", start_str="def call_model_adapter", max_lines=45)
+        st.code(adapter_code, language="python")
+
+    # 02. Target Model Configuration
+    with st.expander("02 · Target Model Configuration (main.py)"):
+        st.markdown("**SOURCE**: `main.py` | **PURPOSE**: Model routing and Google GenAI SDK setup")
         model_code = read_source_excerpt("main.py", start_str="MODEL_NAME =", max_lines=25)
         st.code(model_code, language="python")
         

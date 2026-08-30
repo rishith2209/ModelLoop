@@ -3,10 +3,8 @@ import json
 import time
 import sys
 from dotenv import load_dotenv
-from google import genai
 
-# Add C:\Users\ksree and current directory to sys.path
-sys.path.append(r"C:\Users\ksree")
+# Add directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from test_cases import TEST_CASES
@@ -16,41 +14,22 @@ from LearningEngine import (
     load_improvement_memory,
     build_guided_context
 )
+from model_adapter import call_model_adapter, PROVIDER_CONFIGS
 
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini API
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key or api_key == "your_dummy_key_here":
-    print("WARNING: Using dummy or missing GEMINI_API_KEY. System running in simulated mock mode.")
-    MOCK_MODE = True
-    client = None
-else:
-    client = genai.Client(api_key=api_key)
-    MOCK_MODE = False
-
 MODEL_NAME = "gemini-3.6-flash"
 
-def call_gemini(prompt):
-    """Sends prompt to Gemini API with fallback simulation for quota/network errors."""
-    if MOCK_MODE:
-        time.sleep(0.3)
-        return get_simulated_gemini_response(prompt)
-    
-    try:
-        # Small delay to reduce rate limit hits
-        time.sleep(1.0)
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt,
-        )
-        if not response or not response.text:
-            raise Exception("Empty response returned from model API")
-        return response.text
-    except Exception as e:
-        print(f"   [API Note]: {str(e)[:120]}... Falling back to simulated live model response.")
-        return get_simulated_gemini_response(prompt)
+def call_gemini(prompt, provider_id="google", model_name=None):
+    """
+    Model execution layer wrapper.
+    Routes prompt through model_adapter to support Google GenAI, Anthropic, OpenCode Zen, or Custom endpoints.
+    Returns standard response string for pipeline compatibility.
+    """
+    m_name = model_name or MODEL_NAME
+    res = call_model_adapter(prompt, provider_id=provider_id, model_name=m_name)
+    return res["text"]
 
 def get_simulated_gemini_response(prompt):
     """Fallback simulation mirroring standard LLM responses (and realistic baseline weaknesses)."""
@@ -173,9 +152,9 @@ def create_post_intervention_prompt(test, improvement_data):
         return f"{base_prompt} SYSTEM INSTRUCTION: Fact-check entity validity first. If fictional, explicitly state that it is fictional."
     return f"[Intervention Applied: Enforce criteria '{test['criteria']}']\n{base_prompt}"
 
-def run_evaluation_suite(suite_name, test_suite, is_post_intervention=False):
+def run_evaluation_suite(suite_name, test_suite, is_post_intervention=False, provider_id="google", model_name=None):
     print(f"\n==================================================")
-    print(f"RUNNING EVALUATION SUITE: {suite_name}")
+    print(f"RUNNING EVALUATION SUITE: {suite_name} (Provider: {provider_id})")
     print(f"==================================================")
     
     results = []
@@ -207,7 +186,7 @@ def run_evaluation_suite(suite_name, test_suite, is_post_intervention=False):
             print(f"\n[Test {test_id}] Category: {category} | Severity: {test['severity']}")
             
         print(f"  Prompt: \"{original_prompt[:80]}...\"")
-        response = call_gemini(prompt_to_send)
+        response = call_gemini(prompt_to_send, provider_id=provider_id, model_name=model_name)
         
         # INDEPENDENT EVALUATION: Always evaluate against unchanged test criteria
         eval_res = evaluate_response(test, response)
@@ -279,15 +258,21 @@ def save_json(filename, data):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
-def main():
+def main(provider_id="google", model_name=None):
     print("Initializing ModelLoop Category-Based Self-Improvement Loop...")
-    print("Mechanism: Category-Based Guided Context Intervention\n")
+    print(f"Mechanism: Category-Based Guided Context Intervention | Provider: {provider_id}\n")
     
     # Configurable option: run full 13 test suite
     test_suite = TEST_CASES
     
     # 1. BASELINE EVALUATION RUN
-    baseline_summary, baseline_failures = run_evaluation_suite("Baseline Evaluation", test_suite, is_post_intervention=False)
+    baseline_summary, baseline_failures = run_evaluation_suite(
+        "Baseline Evaluation", 
+        test_suite, 
+        is_post_intervention=False,
+        provider_id=provider_id,
+        model_name=model_name
+    )
     
     # 2. LEARNING ENGINE: Extract lessons & store in improvement_memory.json
     print(f"\n[Learning Engine] Processing {len(baseline_failures)} baseline failure(s)...")
@@ -305,7 +290,13 @@ def main():
     save_json("improvements.json", legacy_improvements)
     
     # 3. POST-INTERVENTION EVALUATION RUN (Category-Based Guidance Retrieval)
-    post_summary, _ = run_evaluation_suite("Post-Intervention Evaluation", test_suite, is_post_intervention=True)
+    post_summary, _ = run_evaluation_suite(
+        "Post-Intervention Evaluation", 
+        test_suite, 
+        is_post_intervention=True,
+        provider_id=provider_id,
+        model_name=model_name
+    )
     
     # 4. MEASURE LEARNING & GENERALIZATION METRICS
     diff_pass_rate = post_summary["pass_rate"] - baseline_summary["pass_rate"]

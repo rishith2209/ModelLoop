@@ -11,7 +11,44 @@ Instead of manually inspecting LLM outputs and tweaking prompts by hand, ModelLo
 
 ---
 
-## 💡 Core Conceptual Workflow
+## ⚡ Model-Agnostic Provider Architecture
+
+ModelLoop's evaluation, learning, and relevance scoring engines are completely model-agnostic. Provider execution is handled through lightweight adapters in `model_adapter.py`:
+
+```
+                    ┌─────────────────────┐
+                    │     MODELLOOP       │
+                    │                     │
+                    │ Evaluation Engine   │
+                    │ Learning Engine     │
+                    │ Relevance Engine    │
+                    │ Audit Engine        │
+                    └──────────┬──────────┘
+                               │
+                         Model Adapter (model_adapter.py)
+                               │
+            ┌──────────────────┼──────────────────┐
+            │                  │                  │
+         Google            Anthropic       OpenAI-Compatible
+            │                  │                  │
+      Gemini 3.6 Flash      Claude        OpenCode Zen / Custom
+            │                  │                  │
+            └──────────────────┼──────────────────┘
+                               │
+                         Model Response
+                               │
+                               ▼
+                     Independent Evaluator
+                               │
+                               ▼
+                        Learning + Audit
+```
+
+Supported Providers:
+- **Google GenAI** (`gemini-3.6-flash`): Default native provider.
+- **Anthropic** (`claude-3-5-sonnet`): Native API integration (requires `ANTHROPIC_API_KEY`).
+- **OpenCode Zen** (`zen-pro`): OpenAI-compatible gateway (requires `OPENCODE_API_KEY`).
+- **Custom OpenAI-Compatible Endpoint**: Configurable `base_url` and `model_name` for custom gateways.
 
 ```
 ┌─────────────────────────┐
