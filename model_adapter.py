@@ -15,29 +15,59 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Registry of supported/configurable providers
+# Registry of supported/configurable providers and expanded model catalog
 PROVIDER_CONFIGS = {
     "google": {
         "name": "Google GenAI",
         "type": "native_google",
         "env_key": "GEMINI_API_KEY",
         "default_model": "gemini-3.6-flash",
-        "models": ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-1.5-flash"]
+        "models": [
+            "gemini-3.6-flash",
+            "gemini-3.7-flash",
+            "gemini-3.5-flash",
+            "gemini-3.1-pro",
+            "gemini-2.5-flash",
+            "gemini-1.5-flash"
+        ],
+        "model_display_names": {
+            "gemini-3.6-flash": "Gemini 3.6 Flash",
+            "gemini-3.7-flash": "Gemini 3.7 Flash",
+            "gemini-3.5-flash": "Gemini 3.5 Flash",
+            "gemini-3.1-pro": "Gemini 3.1 Pro",
+            "gemini-2.5-flash": "Gemini 2.5 Flash",
+            "gemini-1.5-flash": "Gemini 1.5 Flash"
+        }
     },
     "anthropic": {
         "name": "Anthropic",
         "type": "native_anthropic",
         "env_key": "ANTHROPIC_API_KEY",
         "default_model": "claude-3-5-sonnet-20241022",
-        "models": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]
+        "models": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"],
+        "model_display_names": {
+            "claude-3-5-sonnet-20241022": "Claude 3.5 Sonnet",
+            "claude-3-5-haiku-20241022": "Claude 3.5 Haiku"
+        }
     },
     "opencode_zen": {
-        "name": "OpenCode Zen (OpenAI-Compatible)",
+        "name": "OpenCode Zen / OpenAI Gateway",
         "type": "openai_compatible",
         "env_key": "OPENCODE_API_KEY",
         "base_url": os.getenv("OPENCODE_BASE_URL", "https://api.opencode.zen/v1"),
-        "default_model": "zen-pro",
-        "models": ["zen-pro", "zen-flash", "zen-coder"]
+        "default_model": "zai-org/glm-5.2-maas",
+        "models": [
+            "zai-org/glm-5.2-maas",
+            "zen-pro",
+            "zen-flash",
+            "zen-coder"
+        ],
+        "model_display_names": {
+            "zai-org/glm-5.2-maas": "GLM 5.2 MAAS (zai-org/glm-5.2-maas)",
+            "zen-pro": "Zen Pro",
+            "zen-flash": "Zen Flash",
+            "zen-coder": "Zen Coder"
+        }
     },
     "openai_compatible": {
         "name": "Custom OpenAI-Compatible Endpoint",
@@ -45,7 +75,10 @@ PROVIDER_CONFIGS = {
         "env_key": "CUSTOM_PROVIDER_API_KEY",
         "base_url": os.getenv("CUSTOM_PROVIDER_BASE_URL", "http://localhost:8000/v1"),
         "default_model": os.getenv("CUSTOM_PROVIDER_MODEL", "custom-model"),
-        "models": [os.getenv("CUSTOM_PROVIDER_MODEL", "custom-model")]
+        "models": [os.getenv("CUSTOM_PROVIDER_MODEL", "custom-model")],
+        "model_display_names": {
+            os.getenv("CUSTOM_PROVIDER_MODEL", "custom-model"): os.getenv("CUSTOM_PROVIDER_MODEL", "Custom OpenAI-Compatible Model")
+        }
     }
 }
 

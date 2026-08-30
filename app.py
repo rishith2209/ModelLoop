@@ -326,10 +326,25 @@ elif nav_selection == "🔬 Evaluation Lab":
         )
         
         provider_cfg = PROVIDER_CONFIGS[selected_provider_id]
+        display_map = provider_cfg.get("model_display_names", {})
+        
         selected_model_name = st.selectbox(
             "Select Model",
-            options=provider_cfg["models"]
+            options=provider_cfg["models"],
+            format_func=lambda x: display_map.get(x, x)
         )
+        
+        # Selected Model Details Card
+        st.markdown(f"""
+        <div class="sidebar-card" style="margin-top: 15px;">
+            <div class="sidebar-card-title">Selected Model Details</div>
+            <div class="sidebar-card-value">{display_map.get(selected_model_name, selected_model_name)}</div>
+            <div class="sidebar-card-title">Model ID</div>
+            <div class="sidebar-card-value"><code>{selected_model_name}</code></div>
+            <div class="sidebar-card-title">Provider</div>
+            <div class="sidebar-card-value">{provider_cfg['name']}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
     with c2:
         st.markdown("#### Execution Status & Connection Test")
@@ -341,7 +356,7 @@ elif nav_selection == "🔬 Evaluation Lab":
             st.caption(status_info.get("reason", ""))
             
         if st.button("🔌 Test Provider Connection", type="secondary"):
-            with st.spinner("Testing API endpoint..."):
+            with st.spinner(f"Testing API connection to {selected_model_name}..."):
                 conn_res = test_provider_connection(selected_provider_id, model_name=selected_model_name)
                 if conn_res["status"] == "live":
                     st.success(f"LIVE: {conn_res['message']}")
@@ -352,7 +367,7 @@ elif nav_selection == "🔬 Evaluation Lab":
         
     st.divider()
     st.markdown("#### Execute Pipeline with Selected Configuration")
-    if st.button(f"🚀 Execute Benchmark with {provider_cfg['name']}", type="primary"):
+    if st.button(f"🚀 Execute Benchmark with {provider_cfg['name']} ({selected_model_name})", type="primary"):
         with st.spinner(f"Running Benchmark via {provider_cfg['name']} ({selected_model_name})..."):
             try:
                 pipeline.main(provider_id=selected_provider_id, model_name=selected_model_name)
