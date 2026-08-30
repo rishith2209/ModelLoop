@@ -1,19 +1,93 @@
-# ⚡ ModelLoop: LLM Evaluation & Self-Improvement Prototype
+# ⚡ ModelLoop: LLM Evaluation & Failure-Driven Improvement Framework
 
 [![BuildSprint 2026](https://img.shields.io/badge/BuildSprint-2026-blue.svg)](https://github.com/rishith2209/ModelLoop)
-[![Model](https://img.shields.io/badge/Target%20Model-Gemini%203.6%20Flash-green.svg)](https://deepmind.google/technologies/gemini/)
-[![Python](https://img.shields.io/badge/Python-3.13-yellow.svg)](https://www.python.org/)
-[![UI](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
+[![Target Models](https://img.shields.io/badge/Models-Gemini_3.6_Flash_%7C_GLM_5.2_%7C_Claude_3.5-green.svg)](https://deepmind.google/technologies/gemini/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-yellow.svg)](https://www.python.org/)
+[![UI Framework](https://img.shields.io/badge/UI-Streamlit-red.svg)](https://streamlit.io/)
+[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
 **ModelLoop** is an automated model evaluation, failure-diagnosis, and self-improvement framework built for **BuildSprint 2026**.
 
-Instead of manually inspecting LLM outputs and tweaking prompts by hand, ModelLoop establishes a closed-loop system: **it evaluates baseline model behavior against strict criteria, extracts structured lessons from failures, selectively retrieves domain-relevant guidance, and re-evaluates the model independently to measure performance transfer.**
+Instead of manually inspecting LLM outputs and tweaking prompts by hand, ModelLoop establishes a closed-loop research framework: **it evaluates baseline model behavior against strict criteria, extracts structured lessons from failures, selectively retrieves domain-relevant guidance, and re-evaluates the model independently to measure performance transfer.**
+
+---
+
+## 📑 Table of Contents
+- [💡 Core Conceptual Workflow](#-core-conceptual-workflow)
+- [⚡ Model-Agnostic Provider Architecture](#-model-agnostic-provider-architecture)
+- [📊 Key Benchmark Results & Verification](#-key-benchmark-results--verification)
+- [🔀 Demonstrated Generalization (Transfer Learning)](#-demonstrated-generalization-transfer-learning)
+- [📁 Repository Structure](#-repository-structure)
+- [🛠️ Installation & Setup Guide](#️-installation--setup-guide)
+- [🚀 How to Run ModelLoop](#-how-to-run-modelloop)
+- [🔬 Web UI Features & Audit Capabilities](#-web-ui-features--audit-capabilities)
+- [🛡️ Security, Privacy & Technical Integrity](#️-security-privacy--technical-integrity)
+- [📜 License & Acknowledgments](#-license--acknowledgments)
+
+---
+
+## 💡 Core Conceptual Workflow
+
+ModelLoop operates as an automated 6-step closed-loop evaluation and improvement engine:
+
+```
+┌─────────────────────────┐
+│     BENCHMARK SUITE     │ (13 Benchmark Cases across 8 Weakness Categories)
+└────────────┬────────────┘
+             │
+             v
+┌─────────────────────────┐
+│     LLM PROVIDER        │ (Baseline Run: Gemini 3.6 Flash / Configured Model)
+└────────────┬────────────┘
+             │
+             v
+┌─────────────────────────┐
+│  INDEPENDENT EVALUATOR  │ (Strict Criteria-Based Judgment)
+└────────────┬────────────┘
+             │
+             ├─────────────────────────┐
+      [PASS] │                         │ [FAIL]
+             v                         v
+   (Baseline Results)       ┌─────────────────────────┐
+                            │     LEARNING ENGINE     │ (Extracts Failure Lessons)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │   IMPROVEMENT MEMORY    │ (Persisted in improvement_memory.json)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │ RELEVANCE RETRIEVAL ENGINE│ (compute_relevance_score Keyword Matching)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │  GUIDED CONTEXT LAYER   │ (In-Context Intervention Prompt Prefix)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │     LLM PROVIDER        │ (Post-Intervention Re-evaluation)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │  INDEPENDENT EVALUATOR  │ (Same Criteria Verification)
+                            └──────────┬──────────────┘
+                                       │
+                                       v
+                            ┌─────────────────────────┐
+                            │ BEFORE vs AFTER REPORT  │ (+38.5% Pass Rate Delta)
+                            └─────────────────────────┘
+```
 
 ---
 
 ## ⚡ Model-Agnostic Provider Architecture
 
-ModelLoop's evaluation, learning, and relevance scoring engines are completely model-agnostic. Provider execution is handled through lightweight adapters in `model_adapter.py`:
+ModelLoop's evaluation engine, learning engine, and relevance scoring algorithm are completely model-agnostic. All LLM interactions route through unified provider adapters in `model_adapter.py`:
 
 ```
                     ┌─────────────────────┐
@@ -32,91 +106,48 @@ ModelLoop's evaluation, learning, and relevance scoring engines are completely m
          Google            Anthropic       OpenAI-Compatible
             │                  │                  │
       Gemini 3.6 Flash      Claude        OpenCode Zen / Custom
+      Gemini 3.7 Flash                     GLM 5.2 MAAS
             │                  │                  │
             └──────────────────┼──────────────────┘
                                │
                          Model Response
                                │
                                ▼
-                     Independent Evaluator
+                     Independent Evaluator (evaluator.py)
                                │
                                ▼
                         Learning + Audit
 ```
 
-Supported Providers:
-- **Google GenAI** (`gemini-3.6-flash`): Default native provider.
-- **Anthropic** (`claude-3-5-sonnet`): Native API integration (requires `ANTHROPIC_API_KEY`).
-- **OpenCode Zen** (`zen-pro`): OpenAI-compatible gateway (requires `OPENCODE_API_KEY`).
-- **Custom OpenAI-Compatible Endpoint**: Configurable `base_url` and `model_name` for custom gateways.
-
-```
-┌─────────────────────────┐
-│     BENCHMARK SUITE     │ (13 Tests across 8 Weakness Categories)
-└────────────┬────────────┘
-             │
-             v
-┌─────────────────────────┐
-│    GEMINI 3.6 FLASH     │ (Baseline Run)
-└────────────┬────────────┘
-             │
-             v
-┌─────────────────────────┐
-│  INDEPENDENT EVALUATOR  │ (Strict Criteria-Based Judgment)
-└────────────┬────────────┘
-             │
-             ├─────────────────────────┐
-      [PASS] │                         │ [FAIL]
-             v                         v
-   (Baseline Results)       ┌─────────────────────────┐
-                            │     LEARNING ENGINE     │ (Extracts Failure Lessons)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │   IMPROVEMENT MEMORY    │ (Stored in improvement_memory.json)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │ RELEVANCE RETRIEVAL ENGINE│ (compute_relevance_score)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │ GUIDED CONTEXT LAYER    │ (In-Context Intervention)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │    GEMINI 3.6 FLASH     │ (Post-Intervention Re-evaluation)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │  INDEPENDENT EVALUATOR  │ (Same Criteria Verification)
-                            └──────────┬──────────────┘
-                                       │
-                                       v
-                            ┌─────────────────────────┐
-                            │ BEFORE vs AFTER REPORT  │ (+38.5% Pass Rate Delta)
-                            └─────────────────────────┘
-```
+### Supported Model Catalog & Providers:
+- **Google GenAI (Native SDK)**:
+  - `gemini-3.6-flash` *(Default Known-Good Benchmark Baseline)*
+  - `gemini-3.7-flash`
+  - `gemini-3.5-flash`
+  - `gemini-3.1-pro`
+  - `gemini-2.5-flash`
+- **OpenAI-Compatible Gateways**:
+  - `zai-org/glm-5.2-maas` (OpenCode Zen)
+  - `zen-pro`, `zen-flash`, `zen-coder`
+- **Anthropic**:
+  - `claude-3-5-sonnet-20241022`
+  - `claude-3-5-haiku-20241022`
+- **Custom Endpoints**: Configurable `base_url` and `model_name` for any OpenAI-compatible API.
 
 ---
 
 ## 📊 Key Benchmark Results & Verification
 
-All numbers are dynamically calculated from actual pipeline runs and saved to `evaluation_results.json`:
+All benchmark statistics are dynamically calculated from actual pipeline executions and persisted to `evaluation_results.json`:
 
-| Metric | Baseline Run | Post-Intervention | Improvement |
+| Metric | Baseline Run | Post-Intervention | Improvement Delta |
 | :--- | :---: | :---: | :---: |
 | **Pass Rate** | **53.8%** (7/13) | **92.3%** (12/13) | **+38.5%** |
 | **Average Score** | **0.68** / 1.00 | **0.92** / 1.00 | **+0.24** |
 | **Failures Detected** | 6 Failures | 1 Failure | **-5 Failures** |
-| **Lessons Extracted** | 0 Lessons | 6 Category Rules | **6 Lessons Stored** |
+| **Lessons Generated** | 0 Lessons | 6 Category Rules | **6 Lessons Persisted** |
 
-> 🔒 **Honesty Disclosure**: ModelLoop uses *Guided-Context Intervention* (automated in-context guidance). The underlying neural network weights of Gemini are **not** retrained. The evaluator remains 100% independent and isolated from intervention metadata during judgment.
+> 🔒 **Honesty Disclosure**: ModelLoop uses *Guided-Context Intervention* (automated in-context guidance). The underlying neural network weights of the model are **not** retrained. The evaluator remains 100% independent and isolated from intervention metadata during judgment.
 
 ---
 
@@ -131,7 +162,7 @@ ModelLoop proves that failure-derived lessons generalize to **brand new unseen t
    - **Outcome**: `TC11` **PASSED** on the post-intervention run using the retrieved `TC01` rule.
 
 2. **Word Count Generalization (`TC02` → `TC13`)**:
-   - **Baseline Failure (`TC02`)**: Gemini generated 13 words for a 10-word limit limit constraint.
+   - **Baseline Failure (`TC02`)**: Gemini generated 13 words for a 10-word limit constraint.
    - **Derived Rule**: *"Keep answer extremely brief. Word count must strictly be 10 words or fewer."*
    - **Generalization Target (`TC13`)**: Define photosynthesis in $\le 8$ words.
    - **Outcome**: `TC13` **PASSED** with a compliant 7-word output (*"Plants convert light into chemical energy sugar."*).
@@ -149,7 +180,8 @@ ModelLoop proves that failure-derived lessons generalize to **brand new unseen t
 ModelLoop/
 │
 ├── main.py                     # Execution pipeline conductor (CLI execution & run loop)
-├── LearningEngine.py           # Lesson extraction engine & compute_relevance_score algorithm
+├── model_adapter.py            # Unified provider adapter layer (Google, Anthropic, OpenAI/OpenCode)
+├── LearningEngine.py           # Failure lesson extraction & compute_relevance_score algorithm
 ├── evaluator.py                # Criteria-based independent judge (PASS/FAIL & scoring)
 ├── test_cases.py               # Benchmark bank: 13 cases across 8 weakness categories
 ├── app.py                      # Dark research lab Web UI built with Streamlit
@@ -168,7 +200,7 @@ ModelLoop/
 
 ### 1. Prerequisites
 - **Python**: 3.10+ (Tested on Python 3.13)
-- **Gemini API Key**: Obtain a key from [Google AI Studio](https://aistudio.google.com/).
+- **API Credentials**: Gemini API key from [Google AI Studio](https://aistudio.google.com/) (or keys for Anthropic/OpenCode).
 
 ### 2. Environment Setup
 Clone the repository and set up a virtual environment:
@@ -182,12 +214,12 @@ cd ModelLoop
 python -m venv venv
 
 # Activate virtual environment
-# On Windows:
+# On Windows PowerShell:
 venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
 
-# Install dependencies
+# Install required dependencies
 pip install google-genai python-dotenv streamlit colorama
 ```
 
@@ -195,7 +227,12 @@ pip install google-genai python-dotenv streamlit colorama
 Create a `.env` file in the root directory:
 
 ```env
+# Primary Target Provider
 GEMINI_API_KEY=your_actual_gemini_api_key_here
+
+# Optional Secondary Providers
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENCODE_API_KEY=your_opencode_api_key_here
 ```
 
 ---
@@ -210,13 +247,7 @@ To launch the dark research lab dashboard:
 streamlit run app.py
 ```
 
-Open your browser at `http://localhost:8501` to explore:
-- **📊 Overview & Health**: Visual KPIs and category weakness heatmap.
-- **📋 Detailed Test Results**: Expandable side-by-side comparison of baseline vs. post-intervention responses.
-- **🧠 Learning Memory**: Explorer for failure-derived rules stored in `improvement_memory.json`.
-- **🔀 Generalization & Retrieval**: Audit trace showing why lessons were retrieved or penalized.
-- **⚡ Custom Test Lab**: Interactive playground for custom prompts.
-- **🔍 Audit & Experiment View**: Live implementation evidence reading source code directly from `main.py`, `evaluator.py`, `LearningEngine.py`, and JSON artifacts.
+Open your browser at `http://localhost:8501`.
 
 ### Option B: Run via Command Line Interface (CLI)
 
@@ -228,14 +259,29 @@ python main.py
 
 ---
 
-## 🛡️ Security & Integrity
+## 🔬 Web UI Features & Audit Capabilities
 
-- **No Hardcoded Secrets**: All credentials are loaded via environment variables (`python-dotenv`). `.env` is explicitly git-ignored.
-- **No Hardcoded Metrics**: All numbers rendered in `app.py` are loaded directly from `evaluation_results.json` produced during runtime execution.
-- **Evaluator Isolation**: The evaluator judges model responses strictly against fixed benchmark criteria without inspecting intervention context.
+ModelLoop features a dark, technical research-lab dashboard organized into 7 navigation modules:
+
+1. **📊 Overview & Health**: High-level KPIs, baseline vs. post-intervention pass rates, and weakness category heatmaps.
+2. **🔬 Evaluation Lab**: Provider & Model execution control center with connection testing (`🔌 Test Provider Connection`).
+3. **📋 Detailed Test Results**: Side-by-side comparison of baseline vs. post-intervention responses, scores, and evaluator explanations.
+4. **🧠 Learning Memory**: Explorer for failure-derived lessons stored in `improvement_memory.json`.
+5. **🔀 Generalization & Retrieval**: Audit trace showing `compute_relevance_score` reasoning for retrieved guidance.
+6. **⚡ Custom Test Lab**: Interactive playground for running custom prompts through Gemini 3.6 Flash without modifying benchmark criteria.
+7. **🔍 Audit & Implementation Evidence**: Dynamically loads and renders actual Python source code from `main.py`, `evaluator.py`, `LearningEngine.py`, `model_adapter.py`, and `test_cases.py` on disk.
 
 ---
 
-## 📜 License
+## 🛡️ Security, Privacy & Technical Integrity
 
-This project is licensed under the MIT License — built for **BuildSprint 2026**.
+- **Zero Hardcoded Credentials**: All API keys are loaded via `python-dotenv`. `.env` is explicitly git-ignored.
+- **Zero Hardcoded Metrics**: All numbers rendered in `app.py` are loaded directly from `evaluation_results.json` produced during runtime execution.
+- **Evaluator Isolation**: The evaluator judges model responses strictly against fixed benchmark criteria without inspecting intervention context.
+- **Graceful Quota Handling**: Automatically detects HTTP 429 rate limits and logs fallback states without crashing.
+
+---
+
+## 📜 License & Acknowledgments
+
+This project is licensed under the **MIT License** — built for **BuildSprint 2026**.
